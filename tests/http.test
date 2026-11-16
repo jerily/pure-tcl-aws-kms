@@ -1,0 +1,29 @@
+# 
+# Copyright Jerily LTD. All Rights Reserved.
+# SPDX-FileCopyrightText: 2026 Neofytos Dimitriou (neo@jerily.cy)
+# SPDX-License-Identifier: MIT.
+# 
+
+package require tcltest 2
+namespace import ::tcltest::test
+lappend ::auto_path [file dirname [file dirname [file normalize [info script]]]]
+package require pure-tcl-aws-kms 0.1.0
+set endpoint [lindex $argv 0]
+set argv {}
+set c [::aws::kms::create [dict create region us-east-1 endpoint $endpoint aws_access_key_id test aws_secret_access_key test aws_session_token temporary-token]]
+test kms-management {list pages, create, inspect and change key state} -body {
+    list [$c list_keys] [$c create_key] [dict get [$c describe_key arn] Enabled] [$c enable_key arn] [$c disable_key arn] [$c schedule_key_deletion arn 7] [$c cancel_key_deletion arn]
+} -result {{key1 key2} arn 1 arn arn 1900000000 arn}
+test kms-binary {all binary methods preserve non-text bytes} -body {
+    set b [binary format H* 00ff80]
+    set pair [$c generate_data_key arn 32]
+    list [binary encode hex [$c encrypt arn $b]] [binary encode hex [$c decrypt $b]] [binary encode hex [lindex $pair 0]] [binary encode hex [lindex $pair 1]] [binary encode hex [$c generate_random 3]]
+} -result {00ff80 00ff80 00ff80 00ff80 00ff80}
+test kms-validation {invalid deletion windows and random lengths fail locally} -body {
+    list [catch {$c schedule_key_deletion arn 6}] [catch {$c generate_random 1025}]
+} -result {1 1}
+
+$c destroy
+set failed $::tcltest::numTests(Failed)
+::tcltest::cleanupTests
+exit [expr {$failed > 0}]
