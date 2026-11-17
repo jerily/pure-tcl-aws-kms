@@ -67,5 +67,5 @@ proc ::aws::kms::_generate_random {client size} {
     integer $size 1 1024 number_of_bytes
     binary decode base64 [dict get [call $client GenerateRandom [dict create NumberOfBytes [list N $size]]] Plaintext]
 }
-package provide pure-tcl-aws-kms 0.1.1
+package provide pure-tcl-aws-kms 1.0.0
 package provide awskms 1.0.19
