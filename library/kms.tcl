@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT.
 # 
 
-package require pure-tcl-aws-core 0.1.0
+package require pure-tcl-aws-core 1.0.0
 namespace eval ::aws::kms {namespace path ::aws::core}
 ::aws::core::register kms {list_keys create_key describe_key enable_key disable_key schedule_key_deletion cancel_key_deletion encrypt decrypt generate_data_key generate_random}
 
@@ -67,5 +67,5 @@ proc ::aws::kms::_generate_random {client size} {
     integer $size 1 1024 number_of_bytes
     binary decode base64 [dict get [call $client GenerateRandom [dict create NumberOfBytes [list N $size]]] Plaintext]
 }
-package provide pure-tcl-aws-kms 0.1.0
+package provide pure-tcl-aws-kms 0.1.1
 package provide awskms 1.0.19
